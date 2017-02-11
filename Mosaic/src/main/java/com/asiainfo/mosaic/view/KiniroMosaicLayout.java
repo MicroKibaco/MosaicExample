@@ -53,13 +53,13 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
      * @param context
      */
     private int mWidth;
-
     /***
      * 动画层
      */
     private RelativeLayout mAnimLayout;
     private ImageView mFirst;
     private ImageView mSecond;
+    private boolean IsAniming;
 
     public KiniroMosaicLayout(Context context) {
         this(context, null);
@@ -212,6 +212,11 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
     @Override
     public void onClick(View v) {
 
+        if (IsAniming) {
+
+            return;
+
+        }
         //两次点击的都是同一张图片则取消高亮
         if (mFirst == v) {
 
@@ -311,7 +316,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
                 //将两张图片隐藏
                 mFirst.setVisibility(View.INVISIBLE);
                 mSecond.setVisibility(View.INVISIBLE);
-
+                IsAniming = true;
             }
 
             @Override
@@ -330,6 +335,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
                 mFirst = mSecond = null;
 
                 mAnimLayout.removeAllViews();
+                IsAniming = false;
 
             }
 
@@ -356,7 +362,6 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
 
             }
         });
-        // mFirst = mSecond = null;
 
     }
 
