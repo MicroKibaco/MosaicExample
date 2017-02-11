@@ -1,4 +1,4 @@
-package com.asiainfo.mosaic.utils;
+package com.asiainfo.mosaic.bean;
 
 import android.graphics.Bitmap;
 

@@ -2,6 +2,8 @@ package com.asiainfo.mosaic.utils;
 
 import android.graphics.Bitmap;
 
+import com.asiainfo.mosaic.bean.ImagePiece;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class ImageSplitterUtil {
      * @param piece 块数
      */
 
-    public static List<ImagePiece> splitImage(Bitmap bitmap,int piece){
+    public static List<ImagePiece> splitImage(Bitmap bitmap, int piece) {
 
         List<ImagePiece> imgPieces = new ArrayList<>();
 

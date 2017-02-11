@@ -8,11 +8,13 @@ import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.asiainfo.mosaic.R;
-import com.asiainfo.mosaic.utils.ImagePiece;
+import com.asiainfo.mosaic.bean.ImagePiece;
 import com.asiainfo.mosaic.utils.ImageSplitterUtil;
 
 import java.util.Collections;
@@ -51,6 +53,11 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
      * @param context
      */
     private int mWidth;
+
+    /***
+     * 动画层
+     */
+    private RelativeLayout mAnimLayout;
     private ImageView mFirst;
     private ImageView mSecond;
 
@@ -205,25 +212,31 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
     @Override
     public void onClick(View v) {
 
-        //两次点击同一个item
+        //两次点击的都是同一张图片则取消高亮
         if (mFirst == v) {
 
             mFirst.setColorFilter(null);
             mFirst = null;
+
             return;
 
         }
 
+        //第一次点击
         if (mFirst == null) {
 
             mFirst = (ImageView) v;
+
+            //设置透明度
             mFirst.setColorFilter(Color.parseColor("#55F00000"));
 
         } else {
 
+
             mSecond = (ImageView) v;
 
-            //交换我们的item
+
+            //交换图片
             exChangeView();
         }
 
@@ -231,29 +244,159 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
     }
 
     /***
-     * 交换我们的item
+     * 交换图片item
      */
 
     private void exChangeView() {
 
-        //去掉当前状态
+        //取消第一张图片的高亮状态
         mFirst.setColorFilter(null);
 
-        String firstTag = (String) mFirst.getTag();
-        String secondTag = (String) mSecond.getTag();
+        //准备动画层
+        setUpAnimLayout();
 
-        String[] firstParams = firstTag.split("_");
-        String[] secondParams = secondTag.split("_");
+        /***
+         * 将第一次选择图片复制到动画层
+         */
+        ImageView first = new ImageView(getContext());
+        final String firstTag = (String) mFirst.getTag();
+        final Bitmap firstImgBitmap = mItemBitmaps.get(getImageByTag(firstTag)).getBitmap();
+        first.setImageBitmap(firstImgBitmap);
 
-        Bitmap firstBitmap = mItemBitmaps.get(Integer.parseInt(firstParams[0])).getBitmap();
-        mSecond.setImageBitmap(firstBitmap);
-        mSecond.setTag(firstTag);
+        //设置布局属性
+        RelativeLayout.LayoutParams lpfirst = new RelativeLayout.LayoutParams(mItemWidth, mItemWidth);
+        lpfirst.leftMargin = mFirst.getLeft() - mPadding;
+        lpfirst.topMargin = mFirst.getTop() - mPadding;
+        first.setLayoutParams(lpfirst);
+        mAnimLayout.addView(first);
 
-        Bitmap secondBitmap = mItemBitmaps.get(Integer.parseInt(secondParams[0])).getBitmap();
-        mFirst.setImageBitmap(secondBitmap);
-        mFirst.setTag(secondTag);
 
-        mFirst = mSecond = null;
+        /***
+         * 将第二次选择图片复制到动画层
+         */
+        ImageView second = new ImageView(getContext());
+        final String secondTag = (String) mSecond.getTag();
+        final Bitmap secondImgBitmap = mItemBitmaps.get(getImageByTag(secondTag)).getBitmap();
+        second.setImageBitmap(secondImgBitmap);
+
+        //设置布局属性
+        RelativeLayout.LayoutParams lpsecond = new RelativeLayout.LayoutParams(mItemWidth, mItemWidth);
+        lpsecond.leftMargin = mFirst.getLeft() - mPadding;
+        lpsecond.topMargin = mFirst.getTop() - mPadding;
+        second.setLayoutParams(lpsecond);
+        mAnimLayout.addView(second);
+
+
+        /***
+         * 设置动画
+         */
+        float toFirstXDelta = mSecond.getLeft() - mFirst.getLeft();
+        float toFirstYDelta = mSecond.getTop() - mFirst.getTop();
+        TranslateAnimation animFirst = new TranslateAnimation(0, toFirstXDelta, 0, toFirstYDelta);
+        animFirst.setFillAfter(true);
+        animFirst.setDuration(400);
+        first.startAnimation(animFirst);
+
+        float toSecondXDelta = -mSecond.getLeft() + mFirst.getLeft();
+        float toSecondYDelta = -mSecond.getTop() + mFirst.getTop();
+        TranslateAnimation animSecond = new TranslateAnimation(0, toSecondXDelta, 0, toSecondYDelta);
+        animSecond.setFillAfter(true);
+        animSecond.setDuration(400);
+        second.startAnimation(animSecond);
+
+        animFirst.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+                //将两张图片隐藏
+                mFirst.setVisibility(View.INVISIBLE);
+                mSecond.setVisibility(View.INVISIBLE);
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+
+                mFirst.setTag(secondTag);
+                mSecond.setTag(firstTag);
+
+                mFirst.setImageBitmap(secondImgBitmap);
+                mSecond.setImageBitmap(firstImgBitmap);
+
+                mFirst.setVisibility(VISIBLE);
+                mSecond.setVisibility(VISIBLE);
+
+                mFirst = mSecond = null;
+
+                mAnimLayout.removeAllViews();
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+        //第二张图片的监听动画
+        animSecond.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        // mFirst = mSecond = null;
 
     }
+
+    /***
+     * 根据tag获取id
+     */
+
+    public int getImageByTag(String tag) {
+
+        String[] imgArraryId = tag.split("_");
+
+        return Integer.parseInt(imgArraryId[0]);
+
+    }
+
+    /***
+     * 根据tag获取id
+     */
+
+    public int getImageByIndex(String tag) {
+
+        String[] imgArraryIndex = tag.split("_");
+
+        return Integer.parseInt(imgArraryIndex[1]);
+
+    }
+
+    /***
+     * 构造我们的动画层
+     */
+    private void setUpAnimLayout() {
+
+        if (mAnimLayout == null) {
+
+            mAnimLayout = new RelativeLayout(getContext());
+            addView(mAnimLayout);
+
+        }
+
+    }
+
+
 }
