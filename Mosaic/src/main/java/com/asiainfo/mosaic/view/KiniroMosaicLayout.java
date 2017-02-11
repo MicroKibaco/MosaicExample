@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -50,6 +51,8 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
      * @param context
      */
     private int mWidth;
+    private ImageView mFirst;
+    private ImageView mSecond;
 
     public KiniroMosaicLayout(Context context) {
         this(context, null);
@@ -168,7 +171,6 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
 
     }
 
-
     /***
      * 初始化操作
      */
@@ -200,9 +202,58 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
         return min;
     }
 
-
     @Override
     public void onClick(View v) {
+
+        //两次点击同一个item
+        if (mFirst == v) {
+
+            mFirst.setColorFilter(null);
+            mFirst = null;
+            return;
+
+        }
+
+        if (mFirst == null) {
+
+            mFirst = (ImageView) v;
+            mFirst.setColorFilter(Color.parseColor("#55F00000"));
+
+        } else {
+
+            mSecond = (ImageView) v;
+
+            //交换我们的item
+            exChangeView();
+        }
+
+
+    }
+
+    /***
+     * 交换我们的item
+     */
+
+    private void exChangeView() {
+
+        //去掉当前状态
+        mFirst.setColorFilter(null);
+
+        String firstTag = (String) mFirst.getTag();
+        String secondTag = (String) mSecond.getTag();
+
+        String[] firstParams = firstTag.split("_");
+        String[] secondParams = secondTag.split("_");
+
+        Bitmap firstBitmap = mItemBitmaps.get(Integer.parseInt(firstParams[0])).getBitmap();
+        mSecond.setImageBitmap(firstBitmap);
+        mSecond.setTag(firstTag);
+
+        Bitmap secondBitmap = mItemBitmaps.get(Integer.parseInt(secondParams[0])).getBitmap();
+        mFirst.setImageBitmap(secondBitmap);
+        mFirst.setTag(secondTag);
+
+        mFirst = mSecond = null;
 
     }
 }
