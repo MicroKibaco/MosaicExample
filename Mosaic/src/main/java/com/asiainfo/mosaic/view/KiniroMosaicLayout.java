@@ -5,13 +5,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.asiainfo.mosaic.R;
 import com.asiainfo.mosaic.bean.ImagePiece;
@@ -25,28 +29,22 @@ import java.util.List;
  */
 public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickListener {
 
+    private static final int TIME_CHANGED = 0x110;
+    private static final int NEXT_LEVEL = 0x111;
     //设置九宫格的样式3X3格式
     private int mColumn = 3;
-
     //容器的内边距
     private int mPadding;
-
     //每张小图之间的距离(横,纵)
     private int mMagin = 3;
-
     private ImageView[] mMosaicItems;
-
     private int mItemWidth;
-
     /***
      * 游戏的图片
      */
     private Bitmap mBitmap;
-
     private List<ImagePiece> mItemBitmaps;
-
     private boolean once;
-
     /***
      * 游戏面板宽度
      *
@@ -60,6 +58,41 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
     private ImageView mFirst;
     private ImageView mSecond;
     private boolean IsAniming;
+    private GameMosaicListener mListener;
+    private int mLevel;
+    private boolean isTimeEnable = false;
+    private boolean isGameSucess;
+    private Handler mHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+
+                case TIME_CHANGED:
+                    break;
+
+                case NEXT_LEVEL:
+
+                    mLevel = mLevel + 1;
+
+                    if (mListener != null) {
+                        mListener.nextLevel(mLevel);
+
+                    } else {
+
+                        nextLevel();
+
+                    }
+
+                    break;
+
+                default:
+                    break;
+
+
+            }
+        }
+    };
 
     public KiniroMosaicLayout(Context context) {
         this(context, null);
@@ -73,6 +106,25 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
     public KiniroMosaicLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         initView();
+    }
+
+    public GameMosaicListener getListener() {
+        return mListener;
+    }
+
+    /***
+     * 设置接口回调
+     */
+
+    public void setOnGameMosaicListener(GameMosaicListener listener) {
+        this.mListener = listener;
+    }
+
+    /***
+     * 设置是否开启时间
+     */
+    public void setTimeEnable(boolean timeEnable) {
+        isTimeEnable = timeEnable;
     }
 
     @Override
@@ -209,6 +261,20 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
         return min;
     }
 
+    /***
+     * 下一关的操作逻辑
+     */
+    public void nextLevel() {
+
+        this.removeAllViews();
+        mAnimLayout = null;
+        mColumn++;
+        isGameSucess = false;
+        initBitmap();
+        initItem();
+
+    }
+
     @Override
     public void onClick(View v) {
 
@@ -335,6 +401,9 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
                 mFirst = mSecond = null;
 
                 mAnimLayout.removeAllViews();
+
+                //判断用户游戏是否成功
+                checkSucess();
                 IsAniming = false;
 
             }
@@ -366,6 +435,33 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
     }
 
     /***
+     * 判断用户游戏是否成功
+     */
+    private void checkSucess() {
+
+        boolean isSucess = true;
+
+        for (int i = 0; i < mMosaicItems.length; i++) {
+
+            ImageView imageView = mMosaicItems[i];
+
+            if (getImageIndexByTag((String) imageView.getTag()) != i) {
+
+                isSucess = false;
+
+            }
+
+        }
+        if (isSucess) {
+
+            Log.e("TAG", "Sucess!");
+            Toast.makeText(getContext(), "Sucess ,level up!!!", Toast.LENGTH_SHORT).show();
+            mHandler.sendEmptyMessage(NEXT_LEVEL);
+
+        }
+    }
+
+    /***
      * 根据tag获取id
      */
 
@@ -381,7 +477,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
      * 根据tag获取id
      */
 
-    public int getImageByIndex(String tag) {
+    public int getImageIndexByTag(String tag) {
 
         String[] imgArraryIndex = tag.split("_");
 
@@ -400,6 +496,16 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
             addView(mAnimLayout);
 
         }
+
+    }
+
+    public interface GameMosaicListener {
+
+        void nextLevel(int nextLevel);
+
+        void timeChange(int currentTime);
+
+        void gameOver();
 
     }
 

@@ -7,6 +7,7 @@
         tools:context="com.asiainfo.mosaic.activity.MosaicActivity">
 
     <com.asiainfo.mosaic.view.KiniroMosaicLayout
+            android:id="@+id/game_mosaic"
             android:layout_centerInParent="true"
             android:padding="3dp"
             android:layout_width="match_parent"
