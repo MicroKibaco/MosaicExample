@@ -10,7 +10,7 @@ import com.asiainfo.mosaic.R;
 import com.asiainfo.mosaic.view.KiniroMosaicLayout;
 
 /***
- * TODO 实现游戏时间逻辑 TODO GameOver与暂停
+ * TODO GameOver与暂停有Bug,没有对游戏状态数据
  */
 public class MosaicActivity extends Activity implements KiniroMosaicLayout.GameMosaicListener {
 
