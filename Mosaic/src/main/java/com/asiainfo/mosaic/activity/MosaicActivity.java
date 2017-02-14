@@ -29,6 +29,7 @@ public class MosaicActivity extends Activity implements KiniroMosaicLayout.GameM
 
     }
 
+
     private void initListener() {
 
         mGameMosaicLayout.setOnGameMosaicListener(this);
@@ -93,6 +94,22 @@ public class MosaicActivity extends Activity implements KiniroMosaicLayout.GameM
 
             }
         }).show();
+
+    }
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+        mGameMosaicLayout.pauseGame();
+
+    }
+
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+        mGameMosaicLayout.resumeGame();
 
     }
 }

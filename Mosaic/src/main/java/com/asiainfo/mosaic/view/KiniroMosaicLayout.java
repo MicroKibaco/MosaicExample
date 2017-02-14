@@ -91,7 +91,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
 
     //判断当前游戏是否结束
     private boolean isGameGameOver;
-
+    private boolean isPause;
     private Handler mHandler = new Handler() {
 
         @Override
@@ -101,7 +101,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
                 case TIME_CHANGED:
 
 
-                    if (isGameSucess || isGameGameOver)
+                    if (isGameSucess || isGameGameOver || isPause)
 
                         return;
 
@@ -371,6 +371,32 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
 
     }
 
+    /***
+     * 游戏的暂停
+     */
+    public void pauseGame() {
+
+        isPause = true;
+        mHandler.removeMessages(TIME_CHANGED);
+    }
+
+    /***
+     * 游戏的重新开始
+     */
+
+    public void resumeGame() {
+
+        if (isPause) {
+
+            isPause = false;
+
+            mHandler.sendEmptyMessage(TIME_CHANGED);
+
+        }
+
+    }
+
+
     @Override
     public void onClick(View v) {
 
@@ -501,24 +527,6 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
                 //判断用户游戏是否成功
                 checkSucess();
                 IsAniming = false;
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-
-        //第二张图片的监听动画
-        animSecond.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
 
             }
 
