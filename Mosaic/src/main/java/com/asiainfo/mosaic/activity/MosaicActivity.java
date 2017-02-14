@@ -47,13 +47,20 @@ public class MosaicActivity extends Activity implements KiniroMosaicLayout.GameM
     @Override
     public void nextLevel(final int nextLevel) {
 
-        new AlertDialog.Builder(this).setTitle("Game Info")
-                .setMessage("LEVEL UP!!!").setPositiveButton("NEXT LEVEL", new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(this).setTitle("黄金拼图")
+                .setMessage("恭喜你,过关了!").setPositiveButton("下一关", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
                 mGameMosaicLayout.nextLevel();
                 mCurrentLevel.setText("" + nextLevel);
+            }
+        }).setNegativeButton("退出", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+                finish();
+
             }
         }).show();
     }
@@ -69,16 +76,16 @@ public class MosaicActivity extends Activity implements KiniroMosaicLayout.GameM
     @Override
     public void gameOver() {
 
-        new AlertDialog.Builder(this).setTitle("Game Info")
-                .setMessage("LEVEL UP!!!").setPositiveButton("RESTART", new DialogInterface.OnClickListener() {
+        new AlertDialog.Builder(this).setTitle("黄金拼图")
+                .setMessage("游戏失败,再接再厉!!").setPositiveButton("重新游戏", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                mGameMosaicLayout.nextLevel();
+                mGameMosaicLayout.restartGame();
 
 
             }
-        }).setNegativeButton("QUIT", new DialogInterface.OnClickListener() {
+        }).setNegativeButton("退出", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 

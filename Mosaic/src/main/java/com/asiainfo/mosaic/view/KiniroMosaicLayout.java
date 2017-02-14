@@ -224,6 +224,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
     private void countTimeBaseLevel() {
 
         mTime = (int) Math.pow(2, mLevel) * 60;
+        // mTime = 10;
 
 
     }
@@ -350,9 +351,23 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
         mAnimLayout = null;
         mColumn++;
         isGameSucess = false;
+        checkTimeEnable();
         initBitmap();
         initItem();
-        checkTimeEnable();
+
+
+    }
+
+    /***
+     * 重新开始游戏
+     */
+
+    public void restartGame() {
+
+        isGameGameOver = false;
+        mColumn--;
+        nextLevel();
+
 
     }
 
