@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.animation.Animation;
@@ -24,27 +23,39 @@ import com.asiainfo.mosaic.utils.ImageSplitterUtil;
 import java.util.Collections;
 import java.util.List;
 
+
 /**
  * 作者:小木箱 邮箱:yangzy3@asiainfo.com 创建时间:2017年02月11日15点19分 描述:自定义拼图
  */
 public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickListener {
 
+    //时间改变的请求码
     private static final int TIME_CHANGED = 0x110;
+
+    //下一关请求码
     private static final int NEXT_LEVEL = 0x111;
+
     //设置九宫格的样式3X3格式
     private int mColumn = 3;
+
     //容器的内边距
     private int mPadding;
+
     //每张小图之间的距离(横,纵)
     private int mMagin = 3;
+
+    //小卡片的集合
     private ImageView[] mMosaicItems;
+
+    //小卡片的宽度
     private int mItemWidth;
     /***
      * 游戏的图片
      */
     private Bitmap mBitmap;
     private List<ImagePiece> mItemBitmaps;
-    private boolean once;
+
+    private boolean once = false;
     /***
      * 游戏面板宽度
      *
@@ -55,13 +66,32 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
      * 动画层
      */
     private RelativeLayout mAnimLayout;
+
+    //第一次被选定需要切换的小卡片
     private ImageView mFirst;
+
+    //第二次被选定需要切换的小卡片
     private ImageView mSecond;
-    private boolean IsAniming;
     private GameMosaicListener mListener;
-    private int mLevel;
+
+    //判断动画是否处于播放状态
+    private boolean IsAniming;
+
+    //当前所在关卡
+    private int mLevel = 1;
+
+    //判断当前时间是否开启
     private boolean isTimeEnable = false;
+
+    //设置当前时间
+    private int mTime;
+
+    //判断当前游戏是否过关
     private boolean isGameSucess;
+
+    //判断当前游戏是否结束
+    private boolean isGameGameOver;
+
     private Handler mHandler = new Handler() {
 
         @Override
@@ -69,6 +99,30 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
             switch (msg.what) {
 
                 case TIME_CHANGED:
+
+
+                    if (isGameSucess || isGameGameOver)
+
+                        return;
+
+
+                    if (mListener != null) {
+
+                        mListener.timeChange(mTime);
+
+                        if (mTime == 0) {
+
+                            isGameGameOver = true;
+
+                            mListener.gameOver();
+
+                        }
+
+                    }
+
+                    mTime--;
+                    mHandler.sendEmptyMessageDelayed(TIME_CHANGED, 1000);
+
                     break;
 
                 case NEXT_LEVEL:
@@ -140,11 +194,37 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
 
             initItem();
 
+            //判断是否开启时间
+            checkTimeEnable();
+
             once = true;
         }
 
         //强制调用setMeasuredDimension 让所有的控件占据正方形
         setMeasuredDimension(mWidth, mWidth);
+
+    }
+
+    private void checkTimeEnable() {
+
+        if (isTimeEnable) {
+
+            //根据当前关卡设置时间
+            countTimeBaseLevel();
+            mHandler.sendEmptyMessage(TIME_CHANGED);
+
+
+        }
+
+    }
+
+    /***
+     * 根据当前关卡设置过关时间
+     */
+    private void countTimeBaseLevel() {
+
+        mTime = (int) Math.pow(2, mLevel) * 60;
+
 
     }
 
@@ -166,7 +246,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
 
         mItemBitmaps = ImageSplitterUtil.splitImage(mBitmap, mColumn);
 
-        //使用sort完成我们的乱序
+        //使用sort完成我们的乱序,洗牌
         Collections.shuffle(mItemBitmaps);
 
     }
@@ -272,6 +352,7 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
         isGameSucess = false;
         initBitmap();
         initItem();
+        checkTimeEnable();
 
     }
 
@@ -454,7 +535,9 @@ public class KiniroMosaicLayout extends RelativeLayout implements View.OnClickLi
         }
         if (isSucess) {
 
-            Log.e("TAG", "Sucess!");
+            isGameSucess = true;
+            mHandler.removeMessages(TIME_CHANGED);
+
             Toast.makeText(getContext(), "Sucess ,level up!!!", Toast.LENGTH_SHORT).show();
             mHandler.sendEmptyMessage(NEXT_LEVEL);
 
